@@ -46,13 +46,83 @@ This section summarizes the changes in the following releases:
 
 ==== New features and enhancements
 
-===== Item 1
+===== Progress toward Elastic Common Schema (ECS) 
 
-Info here
+We've done more work to help ease your transition to Elastic Common Schema
+(ECS). This release extends ECS work in previous releases. Here's a recap:
 
-===== Item 2
+* ECS support in Elasticsearch output plugin (7.9). The elasticsearch output
+plugin can manage index templates that are compatible with ECS. For more info:
+{logstash-ref}/plugins-outputs-elasticsearch.html#_compatibility_with_the_elastic_common_schema_ecs[Compatibility
+with the Elastic Common Schema (ECS)]
 
-Info here
+* Pipeline level ECS compatibility (7.10). The `pipeline.ecs_compatibility`
+setting lets users control ECS compatibility for all plugins in a pipeline at
+once instead of configuring each instance manually. This setting lets users lock
+in a specific behavior in advance of their next major version upgrade.
+
+ECS compatibility is off-by-default in Logstash 7.x, but will be on-by-default
+in Logstash 8.0. 
+
+====== ECS-compliant grok patterns
+
+The {logstash-ref}/plugins-filters-grok.html[grok filter plugin] offers a new
+set of patterns to make event field names ECS-compliant. (No worries if you're
+not ready to transition yet. The complete set of legacy patterns is still
+available and continues to be the default for Logstash 7.x.) 
+
+The ECS pattern set has an equivalent for each pattern in the legacy set, and is
+a drop-in replacement. 
+Use the {logstash-ref}/plugins-filters-grok.html#plugins-filters-grok-ecs_compatibility[ecs_compatibility]
+setting when you're ready to switch modes.
+
+====== ECS-compliant beats input
+
+The {logstash-ref}/plugins-inputs-beats.html[beats input plugin] is now
+ECS-compliant. It adds two fields related to the event: the deprecated host
+which contains the hostname, and the ip_address containing the remote address of
+the client’s connection. When
+{logstash-ref}/plugins-inputs-beats.html#plugins-inputs-beats-ecs_compatibility[ECS
+compatibility mode] is enabled these fields are moved to ECS-compatible
+namespace.
+
+===== JDK 15 support
+
+Logstash introduces support for JDK 15!  You need to update settings in
+`jvm.options` and `log4j2.properties` if: 
+
+* you are upgrading from Logstash 7.11.x (or earlier) to 7.12 or later, AND 
+* you are using JDK 15 or later. 
+
+Unless both of these conditions apply, you don't need to adjust settings because
+of the upgrade.  See <<jdk15-upgrade,Using JDK 15>> for more information. 
+
+===== Conditional settings for JVM versions
+
+We've added support for conditional settings and behavior, dependent on the JVM
+version. Now you can configure different settings for different JVM versions.
+Here is an example from the default `jvm.options` file. 
+
+Example:
+```
+## GC configuration
+8-13:-XX:+UseConcMarkSweepGC
+8-13:-XX:CMSInitiatingOccupancyFraction=75
+8-13:-XX:+UseCMSInitiatingOccupancyOnly
+```
+This example sets garbage collection (GC) values for JDK 8-13 only. Those
+settings don't apply to JVM 14 and above.   
+
+This feature is available for any setting in the `jvm.options` file, and aligns
+more closely with the {es} implementation of jvm settings.
+
+===== ARM64 support for Linux (beta)
+
+WIP
+
+===== ARM64 support for MacOS (experimental) 
+
+WIP
 
 ==== Performance improvements and notable issues fixed
 
@@ -62,7 +132,7 @@ Info here
 * 2e4845df3 - Introduction of conditional in jvm.options file (#12530) (3 weeks ago) <andsel>
 * cb35193f7 - remove CMS from jvm options in java 14 (#12638) (#12639) (2 weeks ago) <kaisecheng>
 
-/ JDK 15 - compilation
+// JDK 15 - compilation
 * 05ec149b3 - Enable javadoc lint only for files that contains javadoc comments, avoid warning for missing javadoc comments on everything else (8 weeks ago) <andsel>
 
 // JDK 15 change, handling removal of Nashorn for ingest converter
@@ -147,9 +217,7 @@ Info here
 
 
 
-
-==== Logstash Commits between 7.12 and 7.11.1
-
+// ==== Logstash Commits between 7.12 and 7.11.1
 
 // * 275abab17 - Fix Logstash pipelines management in case of slow loading pipelines or disabled webserver (#12571) (2 days ago) <andsel>
 // * 4e82485d3 - Separate "not terminated" pipeline state into "running" and "loading". (3 days ago) <andsel>
@@ -196,7 +264,7 @@ https://github.com/logstash-plugins/logstash-filter-grok/pull/162[#162]
  
 *Metrics Filter - 4.0.7*
 
-* Fixed typo in documentation
+* [DOC] Fixed typo in documentation
 
 *Beats Input - 6.1.0*
 
